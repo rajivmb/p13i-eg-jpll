@@ -1,0 +1,449 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: P13i MIT Example Java Parent Lambda Layer stack
+
+Parameters:
+  GitHubOwner:
+    Type: String
+  CodeRepository:
+    Description: GitHub repository name
+    Type: String
+  Branch:
+    Description: GitHub branch name
+    Type: String
+    Default: master
+  GitHubTokenSecret:
+    Type: String
+    Default: master
+  ArtifactName:
+    Type: String
+  TagRoot:
+    Description: The main Root structure
+    Type: String
+  TagProject:
+    Description: The name of the Project under Root
+    Type: String
+  TagComponent:
+    Description: The name of the Component within the Project under Root
+    Type: String
+
+Resources:
+
+  P13iMITEgJPLLGroup:
+    Type: "AWS::ResourceGroups::Group"
+    Properties:
+      Name: "P13i_MIT_Example_JPLL_Group"
+      Description: "A group of resources associated to JPLL Example under MIT license"
+      ResourceQuery:
+        Type: "TAG_FILTERS_1_0"
+        Query:
+          ResourceTypeFilters:
+          - "AWS::AllSupported"
+          TagFilters:
+          -
+            Key: "ROOT"
+            Values:
+            - !Ref TagRoot
+          -
+            Key: "Project"
+            Values:
+            - !Ref TagProject
+      Tags:
+      - Key: "Name"
+        Value: "Custom Resources Group"
+      - Key: "Stack"
+        Value: !Ref AWS::StackName
+      - Key: "ROOT"
+        Value: !Ref TagRoot
+      - Key: "Project"
+        Value: !Ref TagProject
+      - Key: "Component"
+        Value: !Ref TagComponent
+
+  BuildArtifactsBucket:
+    Type: 'AWS::S3::Bucket'
+    DeletionPolicy : "Retain"
+    Properties:
+      Tags:
+      - Key: "Name"
+        Value: "Custom Resources Group"
+      - Key: "Stack"
+        Value: !Ref AWS::StackName
+      - Key: "ROOT"
+        Value: !Ref TagRoot
+      - Key: "Project"
+        Value: !Ref TagProject
+      - Key: "Component"
+        Value: !Ref TagComponent
+
+  ########  ##     ## #### ##       ########
+  ##     ## ##     ##  ##  ##       ##     ##
+  ##     ## ##     ##  ##  ##       ##     ##
+  ########  ##     ##  ##  ##       ##     ##
+  ##     ## ##     ##  ##  ##       ##     ##
+  ##     ## ##     ##  ##  ##       ##     ##
+  ########   #######  #### ######## ########
+
+  CodeBuildProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: !Sub ${AWS::StackName}-BuildProject #For some reason CodeBuild Project does not automatically prefixed with the Stack name
+      Description: Shared build project for all Java components related to Custom Resources
+      Artifacts:
+        Type: CODEPIPELINE
+      Environment:
+        Type: LINUX_CONTAINER
+        ComputeType: BUILD_GENERAL1_SMALL
+        Image: aws/codebuild/standard:4.0
+      Cache:
+        Type: S3
+        Location: !Sub ${BuildArtifactsBucket}/codebuild-cache
+      ServiceRole: !GetAtt CodeBuildServiceRole.Arn
+      Source:
+        Type: CODEPIPELINE
+        #BuildSpec: buildspec.yaml
+      Tags:
+      - Key: "Name"
+        Value: "JPLL CodeBuild Project"
+      - Key: "Stack"
+        Value: !Ref AWS::StackName
+      - Key: "ROOT"
+        Value: !Ref TagRoot
+      - Key: "Project"
+        Value: !Ref TagProject
+      - Key: "Component"
+        Value: !Ref TagComponent
+
+
+  ########  #### ########  ######## ##       #### ##    ## ########
+  ##     ##  ##  ##     ## ##       ##        ##  ###   ## ##
+  ##     ##  ##  ##     ## ##       ##        ##  ####  ## ##
+  ########   ##  ########  ######   ##        ##  ## ## ## ######
+  ##         ##  ##        ##       ##        ##  ##  #### ##
+  ##         ##  ##        ##       ##        ##  ##   ### ##
+  ##        #### ##        ######## ######## #### ##    ## ########
+
+  Pipeline:
+    Type: AWS::CodePipeline::Pipeline
+    Properties:
+      ArtifactStore:
+        Location: !Ref BuildArtifactsBucket
+        Type: S3
+      RoleArn: !GetAtt CodePipelineExecRole.Arn
+      Stages:
+      - Name: SOURCE
+        Actions:
+        - Name: SourceAction
+          ActionTypeId:
+            Category: Source
+            Owner: ThirdParty
+            Version: 1
+            Provider: GitHub
+          Configuration:
+            Owner: !Ref GitHubOwner
+            Repo: !Ref CodeRepository
+            Branch: !Ref Branch
+            OAuthToken: !Sub '{{resolve:secretsmanager:${GitHubTokenSecret}:SecretString:token}}'
+            PollForSourceChanges: false
+          OutputArtifacts:
+          - Name: SourceCodeAsZip
+          RunOrder: 1
+      - Name: BUILD
+        Actions:
+        - Name: CodeBuild
+          InputArtifacts:
+          - Name: SourceCodeAsZip
+          ActionTypeId:
+            Category: Build
+            Owner: AWS
+            Provider: CodeBuild
+            Version: "1"
+          Configuration:
+            ProjectName: !Ref CodeBuildProject
+            EnvironmentVariables: !Sub |
+              [
+                {
+                  "name":"BUILD_OUTPUT_BUCKET",
+                  "value":"${BuildArtifactsBucket}",
+                  "type":"PLAINTEXT"
+                },
+                {
+                  "name":"ARTIFACT_NAME",
+                  "value":"${ArtifactName}",
+                  "type":"PLAINTEXT"
+                }
+              ]
+          OutputArtifacts:
+          - Name: BuildArtifactAsZip
+          RunOrder: 1
+      - Name: DEPLOY
+        Actions:
+        - Name: DeploymentApproval
+          ActionTypeId:
+            Category: Approval
+            Owner: AWS
+            Provider: Manual
+            Version: "1"
+          RunOrder: 1
+        - Name: CreateChangeSet
+          ActionTypeId:
+            Category: Deploy
+            Owner: AWS
+            Provider: CloudFormation
+            Version: "1"
+          InputArtifacts:
+          - Name: BuildArtifactAsZip
+          Configuration:
+            ActionMode: CHANGE_SET_REPLACE
+            RoleArn: !GetAtt CloudFormationExecRole.Arn
+            StackName: !Sub "${ArtifactName}-DEPLOY"
+            ChangeSetName: !Sub "${ArtifactName}-DEPLOY-ChangeSet"
+            TemplatePath: BuildArtifactAsZip::p13i_java_parent_lambda_layer_packaged.yaml
+            ParameterOverrides: !Sub |
+              {
+                "ArtifactName": "${ArtifactName}"
+              }
+            Capabilities: CAPABILITY_IAM
+          RunOrder: 2
+        - Name: ExecuteChangeSet
+          ActionTypeId:
+            Category: Deploy
+            Owner: AWS
+            Provider: CloudFormation
+            Version: "1"
+          Configuration:
+            ActionMode: CHANGE_SET_EXECUTE
+            RoleArn: !GetAtt CloudFormationExecRole.Arn
+            StackName: !Sub "${ArtifactName}-DEPLOY"
+            ChangeSetName: !Sub "${ArtifactName}-DEPLOY-ChangeSet"
+          OutputArtifacts:
+          - Name: !Sub "${ArtifactName}-DEPLOY-ChangeSet"
+          RunOrder: 3
+      Tags:
+      - Key: "Name"
+        Value: "JPLL CodePipeline"
+      - Key: "Stack"
+        Value: !Ref AWS::StackName
+      - Key: "ROOT"
+        Value: !Ref TagRoot
+      - Key: "Project"
+        Value: !Ref TagProject
+      - Key: "Component"
+        Value: !Ref TagComponent
+
+  P13iMITEgJPLLGitHubWebhook:
+    Type: 'AWS::CodePipeline::Webhook'
+    Properties:
+      Authentication: GITHUB_HMAC
+      AuthenticationConfiguration:
+        SecretToken: !Sub '{{resolve:secretsmanager:${GitHubTokenSecret}:SecretString:token}}'
+      Filters:
+      - JsonPath: $.ref
+        MatchEquals: 'refs/heads/{Branch}'
+      TargetPipeline: !Ref Pipeline
+      TargetAction: SourceAction
+      Name: P13iMITEgJPLLGitHubWebhook
+      TargetPipelineVersion: !GetAtt Pipeline.Version
+      RegisterWithThirdParty: true
+
+  ####    ###    ##     ##
+  ##    ## ##   ###   ###
+  ##   ##   ##  #### ####
+  ##  ##     ## ## ### ##
+  ##  ######### ##     ##
+  ##  ##     ## ##     ##
+  #### ##     ## ##     ##
+
+  BuildArtifactsBucketPolicy:
+    Type: 'AWS::S3::BucketPolicy'
+    Properties:
+      Bucket: !Ref BuildArtifactsBucket
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+        - Sid: DenyUnEncryptedObjectUploads
+          Effect: Deny
+          Principal: '*'
+          Action: 's3:PutObject'
+          Resource: !Sub "${BuildArtifactsBucket.Arn}/*"
+          Condition:
+            StringNotEquals:
+              's3:x-amz-server-side-encryption': 'aws:kms'
+        - Sid: DenyInsecureConnections
+          Effect: Deny
+          Principal: '*'
+          Action: 's3:*'
+          Resource: !Sub "${BuildArtifactsBucket.Arn}/*"
+          Condition:
+            Bool:
+              'aws:SecureTransport': false
+
+  CodeBuildServiceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          Action: 'sts:AssumeRole'
+          Effect: Allow
+          Principal:
+            Service: codebuild.amazonaws.com
+      Path: /
+      Policies:
+      - PolicyName: CodeBuildServiceRolePolicy
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+            - 'logs:CreateLogGroup'
+            - 'logs:CreateLogStream'
+            - 'logs:PutLogEvents'
+            Resource:
+            - !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/codebuild/${ArtifactName}*-BuildProject'
+            - !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/codebuild/${ArtifactName}*-BuildProject:*'
+          - Effect: Allow
+            Action:
+            - 's3:GetObject'
+            - 's3:GetObjectVersion'
+            - 's3:PutObject'
+            Resource:
+            - !Sub 'arn:aws:s3:::${BuildArtifactsBucket}/*'
+          - Effect: Allow
+            Action: 'ssm:GetParameters'
+            Resource: '*'
+          - Effect: Allow
+            Action: 'secretsmanager:GetSecretValue'
+            Resource: !Sub 'arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${GitHubTokenSecret}'
+      Tags:
+      - Key: "Name"
+        Value: "CodeBuild Service Role"
+      - Key: "Stack"
+        Value: !Ref AWS::StackName
+      - Key: "ROOT"
+        Value: !Ref TagRoot
+      - Key: "Project"
+        Value: !Ref TagProject
+      - Key: "Component"
+        Value: !Ref TagComponent
+
+
+  #TODO Permissions should be restrictive
+  CloudFormationExecRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          Action: 'sts:AssumeRole'
+          Effect: Allow
+          Principal:
+            Service: cloudformation.amazonaws.com
+      Path: /
+      ManagedPolicyArns:
+      - 'arn:aws:iam::aws:policy/AdministratorAccess'
+      Tags:
+      - Key: "Name"
+        Value: "CloudFormation Exec Role"
+      - Key: "Stack"
+        Value: !Ref AWS::StackName
+      - Key: "ROOT"
+        Value: !Ref TagRoot
+      - Key: "Project"
+        Value: !Ref TagProject
+      - Key: "Component"
+        Value: !Ref TagComponent
+
+
+  CodePipelineExecRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Action:
+          - 'sts:AssumeRole'
+          Effect: Allow
+          Principal:
+            Service:
+            - codepipeline.amazonaws.com
+      Path: /
+      Policies:
+      - PolicyName: CodePipelineExecRolePolicy
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+            - 'iam:PassRole'
+            - 'lambda:InvokeFunction'
+            - 'lambda:ListFunctions'
+            - 'lambda:InvokeAsyc'
+            Resource: '*'
+          - Effect: Allow
+            Action: 's3:*'
+            Resource: !Sub 'arn:aws:s3:::${BuildArtifactsBucket}/*'
+          - Effect: Allow
+            Action: 'codecommit:*'
+            Resource: !Sub 'arn:aws:codecommit:${AWS::Region}:${AWS::AccountId}:${CodeRepository}'
+          - Effect: Allow
+            Action:
+            - 'codebuild:StartBuild'
+            - 'codebuild:BatchGetBuilds'
+            Resource:
+            - !Sub 'arn:aws:codebuild:${AWS::Region}:${AWS::AccountId}:project/${ArtifactName}*'
+          - Effect: Allow
+            Action:
+            - 'cloudformation:CreateStack'
+            - 'cloudformation:DescribeStacks'
+            - 'cloudformation:DeleteStack'
+            - 'cloudformation:UpdateStack'
+            - 'cloudformation:CreateChangeSet'
+            - 'cloudformation:ExecuteChangeSet'
+            - 'cloudformation:DeleteChangeSet'
+            - 'cloudformation:DescribeChangeSet'
+            - 'cloudformation:SetStackPolicy'
+            - 'cloudformation:SetStackPolicy'
+            - 'cloudformation:ValidateTemplate'
+            Resource:
+            - !Sub 'arn:aws:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/${ArtifactName}*/*'
+            - !Sub 'arn:aws:cloudformation:${AWS::Region}:aws:transform/Serverless-2016-10-31'
+      Tags:
+      - Key: "Name"
+        Value: "CodePipeline Exec Role"
+      - Key: "Stack"
+        Value: !Ref AWS::StackName
+      - Key: "ROOT"
+        Value: !Ref TagRoot
+      - Key: "Project"
+        Value: !Ref TagProject
+      - Key: "Component"
+        Value: !Ref TagComponent
+
+Outputs:
+  P13iMITEgJPLLGroupArn:
+    Value: !GetAtt P13iMITEgJPLLGroup.Arn
+
+  BuildArtifactsBucketArn:
+    Value: !GetAtt BuildArtifactsBucket.Arn
+
+  CodeBuildProjectArn:
+    Value: !GetAtt CodeBuildProject.Arn
+
+  PipelineName:
+    Value: !Ref Pipeline
+
+  P13iMITEgJPLLGitHubWebhookName:
+    Value: !Ref P13iMITEgJPLLGitHubWebhook
+
+  P13iMITEgJPLLGitHubWebhookUrl:
+    Value: !GetAtt P13iMITEgJPLLGitHubWebhook.Url
+
+  CodeBuildServiceRoleArn:
+    Value: !GetAtt CodeBuildServiceRole.Arn
+
+  CloudFormationExecRoleArn:
+    Value: !GetAtt CloudFormationExecRole.Arn
+
+  CodePipelineExecRoleArn:
+    Value: !GetAtt CodePipelineExecRole.Arn
+

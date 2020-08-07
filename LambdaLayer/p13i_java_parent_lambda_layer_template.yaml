@@ -1,0 +1,22 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: 'AWS::Serverless-2016-10-31'
+Description: 'Lambda Layer stack that consolidated common classes for Custom Resources'
+
+Parameters:
+  ArtifactName:
+    Type: String
+
+Resources:
+  P13iJavaCommonsCRLayer:
+    Type: 'AWS::Serverless::LayerVersion'
+    Properties:
+      LayerName: !Sub '${ArtifactName}-Layer'
+      Description: 'Lambda Layer packaging of Java Parent'
+      ContentUri: 'target/p13i-java-parent-lambda-layer-1.0.0-SNAPSHOT.jar'
+      CompatibleRuntimes:
+      - 'java8'
+      RetentionPolicy: 'Retain'
+
+Outputs:
+  P13iJavaCommonsCRLayerArn:
+    Value: !Ref 'P13iJavaCommonsCRLayer'

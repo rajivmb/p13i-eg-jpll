@@ -1,0 +1,19 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>com.p13i.mit.aws.example</groupId>
+    <artifactId>p13i-java-parent-wrapper</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+    <packaging>pom</packaging>
+    <name>Multi-module project to facilitate packaging of shared artifacts as Java Lambda Layer</name>
+
+    <properties>
+        <maven.deploy.skip>true</maven.deploy.skip>
+    </properties>
+
+    <!-- sub modules -->
+	<modules>
+        <module>Source</module>
+        <module>LambdaLayer</module>
+    </modules>
+</project>

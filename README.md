@@ -1,2 +1,2 @@
-# p13i-oss-eg-jpll
-Project showcasing the packaging shared artefacts and dependencies as a Java Lambda Layer
+# p13i-mit-eg-jpll
+Project showcasing the packaging of shared artefacts and dependencies as a Java Lambda Layer

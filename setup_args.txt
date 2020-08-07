@@ -1,0 +1,7 @@
+inputTimeout=10
+projectName="P13i-MIT-Eg-JPLL"
+githubOwner="rajivmb"
+gitHubTokenSecret="P13iAWSGitHubTokenSecret"
+codeRepository="p13i-mit-eg-jpll"
+tagRoot="P13i"
+tagProject="MIT"

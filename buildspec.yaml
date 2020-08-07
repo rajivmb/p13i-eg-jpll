@@ -1,0 +1,49 @@
+version: 0.2
+
+env:
+  secrets-manager:
+    github_username: P13iAWSGitHubTokenSecret:username
+    github_token: P13iAWSGitHubTokenSecret:token
+
+phases:
+  install:
+    runtime-versions:
+      #https://jinja.palletsprojects.com/en/master/templates/#whitespace-control
+      java: openjdk11
+    commands:
+      # Use Install phase to install packages or any pre-reqs you may need throughout the build (e.g. dev deps, security checks, etc.)
+      - cp settings.xml /root/.m2/settings.xml
+  pre_build:
+    commands:
+      # Use Pre-Build phase to run tests, install any code deps or any other customization before build
+  build:
+    commands:
+      # Use Build phase to build your artifacts (compile, package, etc.)
+      # We package the SAM template and create `packaged.yaml` file that will be used in our pipeline for deployment
+      ## Here we separate Build from Deployment and segregate permissions for different steps
+      - mvn deploy -Drepo.id=github -Drepo.username=$github_username -Drepo.token=$github_token
+  post_build:
+    commands:
+      # Use Post Build for notifications, git tags and any further customization after build
+      # <Ref/> https://blog.tedder.dev/posts/conditionals-in-aws-codebuild/
+      - |-
+          cd $CODEBUILD_SRC_DIR/LambdaLayer
+          aws cloudformation package --template-file p13i_java_parent_lambda_layer_template.yaml --s3-bucket $BUILD_OUTPUT_BUCKET --s3-prefix $ARTIFACT_NAME --output-template-file p13i_java_parent_lambda_layer_packaged.yaml
+
+##################################
+# Build Artifacts to be uploaded #
+##################################
+
+artifacts:
+  files:
+  - $CODEBUILD_SRC_DIR/LambdaLayer/p13i_java_parent_lambda_layer_packaged.yaml
+  discard-paths: yes
+
+#########################################
+# Cache local files for subsequent runs #
+#########################################
+
+cache:
+  paths:
+    # List of path that CodeBuild will upload to S3 Bucket and use in subsequent runs to speed up Builds
+    - '/root/.m2/**/*'
