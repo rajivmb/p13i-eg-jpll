@@ -9,7 +9,7 @@ phases:
   install:
     runtime-versions:
       #https://jinja.palletsprojects.com/en/master/templates/#whitespace-control
-      java: openjdk11
+      java: corretto11
     commands:
       # Use Install phase to install packages or any pre-reqs you may need throughout the build (e.g. dev deps, security checks, etc.)
       - cp settings.xml /root/.m2/settings.xml
