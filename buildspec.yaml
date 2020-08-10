@@ -28,7 +28,7 @@ phases:
       # <Ref/> https://blog.tedder.dev/posts/conditionals-in-aws-codebuild/
       - |-
           cd $CODEBUILD_SRC_DIR/LambdaLayer
-          aws cloudformation package --template-file p13i_java_parent_lambda_layer_template.yaml --s3-bucket $BUILD_OUTPUT_BUCKET --s3-prefix $ARTIFACT_NAME --output-template-file p13i_java_parent_lambda_layer_packaged.yaml
+          aws cloudformation package --template-file p13i_java_parent_lambda_layer_template.yaml --s3-bucket $BUILD_OUTPUT_BUCKET --s3-prefix "${ARTIFACT_NAME}-Artifacts" --output-template-file p13i_java_parent_lambda_layer_packaged.yaml
 
 ##################################
 # Build Artifacts to be uploaded #

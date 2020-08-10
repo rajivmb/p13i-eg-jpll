@@ -7,7 +7,7 @@ Parameters:
     Type: String
 
 Resources:
-  P13iJavaCommonsCRLayer:
+  P13iMITEgJavaParentLambdaLayer:
     Type: 'AWS::Serverless::LayerVersion'
     Properties:
       LayerName: !Sub '${ArtifactName}-Layer'
@@ -18,5 +18,5 @@ Resources:
       RetentionPolicy: 'Retain'
 
 Outputs:
-  P13iJavaCommonsCRLayerArn:
-    Value: !Ref 'P13iJavaCommonsCRLayer'
+  P13iMITEgJavaParentLambdaLayerArn:
+    Value: !Ref 'P13iMITEgJavaParentLambdaLayer'

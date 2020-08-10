@@ -63,6 +63,10 @@ Resources:
     Type: 'AWS::S3::Bucket'
     DeletionPolicy : "Retain"
     Properties:
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+        - ServerSideEncryptionByDefault:
+            SSEAlgorithm: AES256
       Tags:
       - Key: "Name"
         Value: "Custom Resources Group"
@@ -260,14 +264,6 @@ Resources:
       PolicyDocument:
         Version: 2012-10-17
         Statement:
-        - Sid: DenyUnEncryptedObjectUploads
-          Effect: Deny
-          Principal: '*'
-          Action: 's3:PutObject'
-          Resource: !Sub "${BuildArtifactsBucket.Arn}/*"
-          Condition:
-            StringNotEquals:
-              's3:x-amz-server-side-encryption': 'aws:kms'
         - Sid: DenyInsecureConnections
           Effect: Deny
           Principal: '*'

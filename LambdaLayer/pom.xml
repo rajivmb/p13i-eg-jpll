@@ -2,7 +2,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.p13i.mit.aws.example</groupId>
-    <artifactId>p13i-java-parent-lambda-layer</artifactId>
+    <artifactId>p13i-java-parent-example-lambda-layer</artifactId>
     <version>1.0.0-SNAPSHOT</version>
     <packaging>jar</packaging>
     <name>Lambda Layer packaging of Java Parent</name>
@@ -27,7 +27,7 @@
     <dependencies>
         <dependency>
             <groupId>com.p13i.mit.aws.example</groupId>
-            <artifactId>p13i-java-parent</artifactId>
+            <artifactId>p13i-java-parent-example</artifactId>
             <version>1.0.0-SNAPSHOT</version>
         </dependency>
 
