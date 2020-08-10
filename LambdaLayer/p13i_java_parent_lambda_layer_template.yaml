@@ -12,7 +12,7 @@ Resources:
     Properties:
       LayerName: !Sub '${ArtifactName}-Layer'
       Description: 'Lambda Layer packaging of Java Parent'
-      ContentUri: 'target/p13i-java-parent-lambda-layer-1.0.0-SNAPSHOT.jar'
+      ContentUri: 'target/p13i-java-parent-example-lambda-layer-1.0.0-SNAPSHOT.jar'
       CompatibleRuntimes:
       - 'java8'
       RetentionPolicy: 'Retain'
