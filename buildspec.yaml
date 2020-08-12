@@ -21,7 +21,7 @@ phases:
       # Use Build phase to build your artifacts (compile, package, etc.)
       # We package the SAM template and create `packaged.yaml` file that will be used in our pipeline for deployment
       ## Here we separate Build from Deployment and segregate permissions for different steps
-      - mvn deploy -Drepo.id=internal.repo -Drepo.username=$github_username -Drepo.token=$github_token  -Dinternal.repo.url=$INTERNAL_REPO_URL -DaltDeploymentRepository=internal.repo::default::$INTERNAL_REPO_URL
+      - mvn deploy -Drepo.id=internal.repo -Drepo.username=$github_username -Drepo.token=$github_token  -Dinternal.repo.url=$INTERNAL_REPO_URL -DaltDeploymentRepository=internal.repo::$INTERNAL_REPO_URL
   post_build:
     commands:
       # Use Post Build for notifications, git tags and any further customization after build

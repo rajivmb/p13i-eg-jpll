@@ -11,14 +11,6 @@
         <maven.compiler.target>1.8</maven.compiler.target>
     </properties>
 
-    <distributionManagement>
-        <repository>
-            <id>internal.repo</id>
-            <name>Internal Maven Repository</name>
-            <!--<url>https://maven.pkg.github.com/rajivmb/p13i-mvn-repo</url>-->
-        </repository>
-    </distributionManagement>
-
     <dependencyManagement>
         <dependencies>
             <dependency>

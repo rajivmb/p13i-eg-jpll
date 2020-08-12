@@ -20,7 +20,6 @@
                 <repository>
                     <id>internal.repo</id>
                     <name>Internal Maven Repository</name>
-                    <!--<url>https://maven.pkg.github.com/rajivmb/p13i-mvn-repo</url>-->
                     <url>${internal.repo.url}</url>
                     <releases>
                         <enabled>true</enabled>
