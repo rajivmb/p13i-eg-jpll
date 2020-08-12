@@ -2,6 +2,7 @@ inputTimeout=10
 projectName="P13i-MIT-Eg-JPLL"
 githubOwner="rajivmb"
 gitHubTokenSecret="P13iAWSGitHubTokenSecret"
+internalRepoURL="https://maven.pkg.github.com/rajivmb/p13i-mvn-repo"
 codeRepository="p13i-mit-eg-jpll"
 tagRoot="P13i"
 tagProject="MIT"

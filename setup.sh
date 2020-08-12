@@ -26,6 +26,7 @@ aws cloudformation deploy \
         GitHubOwner="${githubOwner}" \
         CodeRepository="${codeRepository}" \
         GitHubTokenSecret="${gitHubTokenSecret}" \
+        InternalRepoURL="${internalRepoURL}" \
         TagRoot="${tagRoot}" \
         TagProject="${tagProject}" \
         TagComponent="JPLL" \
