@@ -14,7 +14,7 @@ jobs:
           java-version: 11
       - name: Publish package
         #run: mvn -B deploy
-        run: mvn -B deploy -s settings.xml -Drepo.id=internal.repo -Drepo.username=$GITHUB_ACTOR -Drepo.token=$GITHUB_TOKEN -Dinternal.repo.url=$INTERNAL_REPO_URL -DaltDeploymentRepository=internal.repo::default::$INTERNAL_REPO_URL
+        run: mvn -B deploy -s $GITHUB_WORKSPACE/settings.xml -Drepo.id=internal.repo -Drepo.username=$GITHUB_ACTOR -Drepo.token=$GITHUB_TOKEN -Dinternal.repo.url=$INTERNAL_REPO_URL -DaltDeploymentRepository=internal.repo::default::$INTERNAL_REPO_URL
         env:
           INTERNAL_REPO_URL: "https://maven.pkg.github.com/rajivmb/p13i-mvn-repo"
           #GITHUB_USERNAME: ${{ secrets.GITHUB_USERNAME }}
