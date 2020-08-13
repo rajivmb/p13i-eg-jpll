@@ -3,8 +3,15 @@ on: [workflow_dispatch]
   #schedule:
   #- cron:  "0 0 * * 0" #Every Sunday at midnight
 jobs:
-  publish:
+  purge:
+    name: "Perform purging of a version and all it's assets in the process"
+    runs-on: ubuntu-latest
+    steps:
+    - name: Delete SNAPSHOT version
+      run: docker run jcansdale/gpr:0.1.226 delete ${{ github.repository }}/com.p13i.mit.aws.example.p13i-java-parent-example -k ${{ secrets.WORKFLOW_TOKEN }} --version 1.0.0-SNAPSHOT --force
+  deploy:
     name: "Perform Maven deploy"
+    needs: purge
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -12,14 +19,11 @@ jobs:
         uses: actions/setup-java@v1
         with:
           java-version: 11
-          #server-id: "internal.repo"
-          #settings-path: ${{ github.workspace }}
       - name: Cache Maven artifacts
         uses: actions/cache@v2
         env:
           cache-name: m2-cache
         with:
-          # npm cache files are stored in `~/.npm` on Linux/macOS
           path: ~/.m2/repository
           key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/pom.xml') }}
           restore-keys: |
