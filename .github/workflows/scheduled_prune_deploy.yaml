@@ -1,7 +1,8 @@
 name: Publish package to the internal Maven Repository
-on: [workflow_dispatch]
-  #schedule:
-  #- cron:  "0 0 * * 0" #Every Sunday at midnight
+on:
+  workflow_dispatch:
+  schedule:
+  - cron:  "0 0 * * 0" #Every Sunday at midnight
 jobs:
   purge:
     name: "Perform purging of a version and all it's assets in the process"
