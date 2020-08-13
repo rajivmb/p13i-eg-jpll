@@ -19,4 +19,4 @@ jobs:
         env:
           INTERNAL_REPO_URL: "https://maven.pkg.github.com/rajivmb/p13i-mvn-repo"
           #GITHUB_USERNAME: ${{ secrets.GITHUB_USERNAME }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.WORKFLOW_TOKEN }}
