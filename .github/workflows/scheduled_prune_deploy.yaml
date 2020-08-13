@@ -12,11 +12,23 @@ jobs:
         uses: actions/setup-java@v1
         with:
           java-version: 11
-          server-id: "internal.repo"
-          settings-path: ${{ github.workspace }}
+          #server-id: "internal.repo"
+          #settings-path: ${{ github.workspace }}
+      - name: Cache Maven artifacts
+        uses: actions/cache@v2
+        env:
+          cache-name: m2-cache
+        with:
+          # npm cache files are stored in `~/.npm` on Linux/macOS
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-build-${{ env.cache-name }}-
+            ${{ runner.os }}-build-
+            ${{ runner.os }}-
       - name: Publish package
-        run: mvn deploy -s $GITHUB_WORKSPACE/settings.xml -Drepo.id=internal.repo -Drepo.username=$GITHUB_ACTOR -Drepo.token=$GITHUB_TOKEN -Dinternal.repo.url=$INTERNAL_REPO_URL -DaltDeploymentRepository=internal.repo::default::$INTERNAL_REPO_URL
+        run: mvn deploy -s settings.xml -Drepo.id=internal.repo -Drepo.username=$GITHUB_USERNAME -Drepo.token=$GITHUB_TOKEN -Dinternal.repo.url=$INTERNAL_REPO_URL -DaltDeploymentRepository=internal.repo::default::$INTERNAL_REPO_URL
         env:
           INTERNAL_REPO_URL: "https://maven.pkg.github.com/rajivmb/p13i-mvn-repo"
-          #GITHUB_USERNAME: ${{ secrets.GITHUB_USERNAME }}
+          GITHUB_USERNAME: ${{ secrets.WORKFLOW_USERNAME }}
           GITHUB_TOKEN: ${{ secrets.WORKFLOW_TOKEN }}
