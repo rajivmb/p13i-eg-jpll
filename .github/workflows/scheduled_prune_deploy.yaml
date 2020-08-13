@@ -12,6 +12,7 @@ jobs:
         uses: actions/setup-java@v1
         with:
           java-version: 11
+          server-id: "internal.repo"
           settings-path: ${{ github.workspace }}
       - name: Publish package
         run: mvn deploy -s $GITHUB_WORKSPACE/settings.xml -Drepo.id=internal.repo -Drepo.username=$GITHUB_ACTOR -Drepo.token=$GITHUB_TOKEN -Dinternal.repo.url=$INTERNAL_REPO_URL -DaltDeploymentRepository=internal.repo::default::$INTERNAL_REPO_URL
