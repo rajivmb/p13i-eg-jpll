@@ -1,9 +1,9 @@
 query: '
-  query($owner:String!, $name:String!, $package:String!, $version:String!) {
+  query($owner:String!, $package:String!, $version:String!) {
      user(login: $owner) {
        login
        id
-       packages(first: 1, names: $package) {
+       packages(first: 1, names: [$package]) {
          nodes {
            version(version: $version) {
              id
@@ -14,6 +14,5 @@ query: '
    }'
 variables:
   owner: rajivmb
-  name: github-graphql-action
   package: com.p13i.mit.aws.example.p13i-java-parent-example
   version: 1.0.0-SNAPSHOT
