@@ -4,17 +4,27 @@ on:
   schedule:
   - cron:  "0 0 * * 0" #Every Sunday at midnight
 jobs:
-  purge:
-    name: "Perform purging of a version and all it's assets in the process"
-    runs-on: ubuntu-latest
-    steps:
-    - name: Delete SNAPSHOT version
-      run: docker run jcansdale/gpr:0.1.226 delete rajivmb/p13i-mvn-repo/com.p13i.mit.aws.example.p13i-java-parent-example -k ${{ secrets.WORKFLOW_TOKEN }} --version 1.0.0-SNAPSHOT --force
+  #purge:
+  #  name: "Perform purging of a version and all it's assets in the process"
+  #  runs-on: ubuntu-latest
+  #  steps:
+  #    - uses: actions/delete-package-versions@v1
+    #- name: Delete SNAPSHOT version
+    #  run: docker run jcansdale/gpr:0.1.226 delete rajivmb/p13i-mvn-repo/com.p13i.mit.aws.example.p13i-java-parent-example -k ${{ secrets.WORKFLOW_TOKEN }} --version 1.0.0-SNAPSHOT --force
   deploy:
     name: "Perform Maven deploy"
     needs: purge
     runs-on: ubuntu-latest
     steps:
+      - name: GitHub GraphQL Action
+        uses: helaili/github-graphql-action@2.0.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.WORKFLOW_TOKEN }}
+        with:
+          query: github_packages_query.yaml
+          logLevel: debug
+          accept: application/vnd.github.elektra-preview+json
+          outputFile: github_packages_query_output.json
       - uses: actions/checkout@v2
       - name: Set up Java
         uses: actions/setup-java@v1
