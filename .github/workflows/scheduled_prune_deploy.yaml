@@ -29,9 +29,12 @@ jobs:
       #- name: Filter Releases
       #  run: "cat /tmp/response.json | jq -r 'def daysAgo(days): (now | floor) - (days * 86400); [.data.repository.registryPackages.edges[0].node.versions.edges | sort_by(.node.updatedAt|fromdate) | reverse | .[] | select( .node.version != \"docker-base-layer\" ) | .value[].node.id] | unique_by(.) | @csv'  | cut -d, -f1  | sed -e 's/^\"//' -e 's/\"$//' > /tmp/release.json"
       - name: Set version id as env
-        run: cat /tmp/response.json | echo `jq '.data.user.packages.nodes[0].version.id'` > /tmp/package_version_id
+        id: versioning
+        run: printf "::set-output id=id::%s" $(cat /tmp/respose.json | jq '.data.user.packages.nodes[0].version.id')
+        #run: cat /tmp/response.json | echo `jq '.data.user.packages.nodes[0].version.id'` > /tmp/package_version_id
       - name: Delete package version by id
-        run: cat /tmp/package_version_id
+        run: echo ${{ steps.versioning.outputs.id }}
+        #run: cat /tmp/package_version_id
       - name: Set up Java
         uses: actions/setup-java@v1
         with:
