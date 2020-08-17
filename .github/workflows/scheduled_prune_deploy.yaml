@@ -31,10 +31,19 @@ jobs:
       - name: Set version id as env
         id: versioning
         run: printf "::set-output name=id::%s" $(cat /tmp/response.json | jq '.data.user.packages.nodes[0].version.id')
-        #run: cat /tmp/response.json | echo `jq '.data.user.packages.nodes[0].version.id'` > /tmp/package_version_id
       - name: Delete package version by id
-        run: echo ${{ steps.versioning.outputs.id }}
-        #run: cat /tmp/package_version_id
+        #run: echo ${{ steps.versioning.outputs.id }}
+        run: |
+          curl -X POST \
+            -s \
+            -H "Accept: application/vnd.github.package-deletes-preview+json" \
+            -H "Authorization: bearer ${{ secrets.WORKFLOW_TOKEN }}" \
+            -d '{"query": "query {user(login: \"rajivmb\") { packages(first: 1, names: \"com.p13i.mit.aws.example.p13i-java-parent-example\") { nodes { version(version: \"1.0.0-SNAPSHOT\") { id } } } } }"}' \
+            -d '{"query": "mutation { deletePackageVersion ( input: { packageVersionId: ${{ steps.versioning.outputs.id }} } ) { success } }"}' \
+            -o /tmp/response2.json \
+            --url https://api.github.com/graphql
+      - name: Delete package outcome
+        run: echo $(cat /tmp/response2.json)
       - name: Set up Java
         uses: actions/setup-java@v1
         with:
