@@ -34,7 +34,7 @@ jobs:
             -o /tmp/mutation_response.json \
             --url https://api.github.com/graphql
       - name: Delete package version outcome
-        run: printf "Delete package version outcome: %s" $(cat /tmp/mutation_response.json)
+        run: echo $(cat /tmp/mutation_response.json)
       - name: Set up Java
         uses: actions/setup-java@v1
         with:
