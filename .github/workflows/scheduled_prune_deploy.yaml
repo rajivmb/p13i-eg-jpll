@@ -30,7 +30,7 @@ jobs:
       #  run: "cat /tmp/response.json | jq -r 'def daysAgo(days): (now | floor) - (days * 86400); [.data.repository.registryPackages.edges[0].node.versions.edges | sort_by(.node.updatedAt|fromdate) | reverse | .[] | select( .node.version != \"docker-base-layer\" ) | .value[].node.id] | unique_by(.) | @csv'  | cut -d, -f1  | sed -e 's/^\"//' -e 's/\"$//' > /tmp/release.json"
       - name: Set version id as env
         id: versioning
-        run: printf "::set-output name=id::%s" $(cat /tmp/response.json | jq '.data.user.packages.nodes[0].version.id')
+        run: printf "::set-output name=id::%s" $(cat /tmp/response.json | jq '.data.user.packages.nodes[0].version.id' | sed -e 's/^\"//' -e 's/\"$//')
       - name: Delete package version by id
         #run: echo ${{ steps.versioning.outputs.id }}
         run: |
@@ -38,7 +38,7 @@ jobs:
             -s \
             -H "Accept: application/vnd.github.package-deletes-preview+json" \
             -H "Authorization: bearer ${{ secrets.WORKFLOW_TOKEN }}" \
-            -d '{"query": "mutation { deletePackageVersion ( input: { packageVersionId: ${{ steps.versioning.outputs.id }} } ) { success } }"}' \
+            -d '{"query": "mutation { deletePackageVersion ( input: { packageVersionId: \"${{ steps.versioning.outputs.id }}\" } ) { success } }"}' \
             -o /tmp/response2.json \
             --url https://api.github.com/graphql
       - name: Delete package outcome
