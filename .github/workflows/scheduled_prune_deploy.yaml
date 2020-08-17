@@ -17,6 +17,21 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+      - name: Fetch package version id
+        run: |
+          curl -X POST \
+            -s \
+            -H "Accept: application/vnd.github.v3+json" \
+            -H "Authorization: bearer ${{ secrets.WORKFLOW_TOKEN }}" \
+            -d '{"query": "query {user(login: \"rajivmb\") { packages(first: 1, names: \"com.p13i.mit.aws.example.p13i-java-parent-example\") { nodes { version(version: \"1.0.0-SNAPSHOT\") { id } } } } }"}' \
+            -o /tmp/response.json \
+            --url https://api.github.com/graphql
+      #- name: Filter Releases
+      #  run: "cat /tmp/response.json | jq -r 'def daysAgo(days): (now | floor) - (days * 86400); [.data.repository.registryPackages.edges[0].node.versions.edges | sort_by(.node.updatedAt|fromdate) | reverse | .[] | select( .node.version != \"docker-base-layer\" ) | .value[].node.id] | unique_by(.) | @csv'  | cut -d, -f1  | sed -e 's/^\"//' -e 's/\"$//' > /tmp/release.json"
+      - name: Set version id as env
+        run: PACKAGE_VERSION_ID=cat /tmp/response.json | echo `jq '.data.user.packages.nodes[0].version.id'`
+      - name: Delete package version by id
+        run: echo $PACKAGE_VERSION_ID
       - name: Set up Java
         uses: actions/setup-java@v1
         with:
