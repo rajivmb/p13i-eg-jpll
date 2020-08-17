@@ -17,15 +17,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - name: GitHub GraphQL Action
-        uses: helaili/github-graphql-action@2.0.1
-        env:
-          GITHUB_TOKEN: ${{ secrets.WORKFLOW_TOKEN }}
-        with:
-          query: ghwf_inputs/github_packages_query.yaml
-          logLevel: debug
-          accept: application/vnd.github.elektra-preview+json
-          outputFile: github_packages_query_output.json
       - name: Set up Java
         uses: actions/setup-java@v1
         with:
