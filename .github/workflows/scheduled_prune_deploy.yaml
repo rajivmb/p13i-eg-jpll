@@ -1,19 +1,14 @@
-name: Publish package to the internal Maven Repository
+name: Purge and Publish Package to Internal Maven Repository
 on:
   workflow_dispatch:
   schedule:
   - cron:  "0 0 * * 0" #Every Sunday at midnight
+env:
+  PACKAGE_NAME: com.p13i.mit.aws.example.p13i-java-parent-example
+  PACKAGE_VERSION: 1.0.0-SNAPSHOT
 jobs:
-  #purge:
-  #  name: "Perform purging of a version and all it's assets in the process"
-  #  runs-on: ubuntu-latest
-  #  steps:
-  #    - uses: actions/delete-package-versions@v1
-    #- name: Delete SNAPSHOT version
-    #  run: docker run jcansdale/gpr:0.1.226 delete rajivmb/p13i-mvn-repo/com.p13i.mit.aws.example.p13i-java-parent-example -k ${{ secrets.WORKFLOW_TOKEN }} --version 1.0.0-SNAPSHOT --force
   deploy:
-    name: "Perform Maven deploy"
-    #needs: purge
+    name: "Perform Purge and Publish"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -23,26 +18,23 @@ jobs:
             -s \
             -H "Accept: application/vnd.github.v3+json" \
             -H "Authorization: bearer ${{ secrets.WORKFLOW_TOKEN }}" \
-            -d '{"query": "query {user(login: \"rajivmb\") { packages(first: 1, names: \"com.p13i.mit.aws.example.p13i-java-parent-example\") { nodes { version(version: \"1.0.0-SNAPSHOT\") { id } } } } }"}' \
-            -o /tmp/response.json \
+            -d '{"query": "query {user(login: \"rajivmb\") { packages(first: 1, names: \"${{ env.PACKAGE_NAME }}\") { nodes { version(version: \"${{ env.PACKAGE_VERSION }}\") { id } } } } }"}' \
+            -o /tmp/query_response.json \
             --url https://api.github.com/graphql
-      #- name: Filter Releases
-      #  run: "cat /tmp/response.json | jq -r 'def daysAgo(days): (now | floor) - (days * 86400); [.data.repository.registryPackages.edges[0].node.versions.edges | sort_by(.node.updatedAt|fromdate) | reverse | .[] | select( .node.version != \"docker-base-layer\" ) | .value[].node.id] | unique_by(.) | @csv'  | cut -d, -f1  | sed -e 's/^\"//' -e 's/\"$//' > /tmp/release.json"
-      - name: Set version id as env
-        id: versioning
-        run: printf "::set-output name=id::%s" $(cat /tmp/response.json | jq '.data.user.packages.nodes[0].version.id' | sed -e 's/^\"//' -e 's/\"$//')
+      - name: Set version id as output
+        id: version
+        run: printf "::set-output name=id::%s" $(cat /tmp/query_response.json | jq '.data.user.packages.nodes[0].version.id' | sed -e 's/^\"//' -e 's/\"$//')
       - name: Delete package version by id
-        #run: echo ${{ steps.versioning.outputs.id }}
         run: |
           curl -X POST \
             -s \
             -H "Accept: application/vnd.github.package-deletes-preview+json" \
             -H "Authorization: bearer ${{ secrets.WORKFLOW_TOKEN }}" \
-            -d '{"query": "mutation { deletePackageVersion ( input: { packageVersionId: \"${{ steps.versioning.outputs.id }}\" } ) { success } }"}' \
-            -o /tmp/response2.json \
+            -d '{"query": "mutation { deletePackageVersion ( input: { packageVersionId: \"${{ steps.version.outputs.id }}\" } ) { success } }"}' \
+            -o /tmp/mutation_response.json \
             --url https://api.github.com/graphql
-      - name: Delete package outcome
-        run: echo $(cat /tmp/response2.json)
+      - name: Delete package version outcome
+        run: printf "Delete package version outcome: %s" $(cat /tmp/mutation_response.json)
       - name: Set up Java
         uses: actions/setup-java@v1
         with:
