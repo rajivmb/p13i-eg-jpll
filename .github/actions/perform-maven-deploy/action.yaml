@@ -1,0 +1,32 @@
+name: 'Perform Maven Deploy'
+description: 'Perform the mvn deploy goal'
+inputs:
+  owner:
+    description: 'Owner of package to delete'
+    required: false
+    default: ${{ github.repository_owner }}
+  token:
+    description: 'Personal access token to use'
+    required: false
+    default: ${{ github.token }}
+  internalRepoURL:
+    description: 'Internal Maven repository URL'
+    required: true
+runs:
+  using: "composite"
+  steps:
+  - name: Set up Java
+    uses: actions/setup-java@v1
+    with:
+      java-version: 11
+  - name: Cache Maven artifacts
+    uses: actions/cache@v2
+    with:
+      path: ~/.m2/repository
+      key: ${{ runner.os }}-build-m2-cache-${{ hashFiles('**/pom.xml') }}
+      restore-keys: |
+        ${{ runner.os }}-build-m2-cache-
+        ${{ runner.os }}-build-
+        ${{ runner.os }}-
+  - name: Publish package
+    run: mvn deploy -s settings.xml -Drepo.id=internal.repo -Drepo.username=${{ inputs.owner }} -Drepo.token=${{ inputs.token }} -Dinternal.repo.url=${{ inputs.internalRepoURL }} -DaltDeploymentRepository=internal.repo::default::${{ inputs.internalRepoURL }}

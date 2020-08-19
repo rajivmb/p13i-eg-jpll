@@ -19,24 +19,9 @@ jobs:
           version: 1.0.0-SNAPSHOT
           owner: ${{ github.repository_owner }}
           token: ${{ secrets.WORKFLOW_TOKEN }}
-      - name: Set up Java
-        uses: actions/setup-java@v1
+      - name: Perform Maven Deploy
+        uses: ./.github/actions/perform-maven-deploy
         with:
-          java-version: 11
-      - name: Cache Maven artifacts
-        uses: actions/cache@v2
-        env:
-          cache-name: m2-cache
-        with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-build-${{ env.cache-name }}-
-            ${{ runner.os }}-build-
-            ${{ runner.os }}-
-      - name: Publish package
-        run: mvn deploy -s settings.xml -Drepo.id=internal.repo -Drepo.username=${{ github.repository_owner }} -Drepo.token=$WORKFLOW_TOKEN -Dinternal.repo.url=$INTERNAL_REPO_URL -DaltDeploymentRepository=internal.repo::default::$INTERNAL_REPO_URL
-        env:
-          INTERNAL_REPO_URL: "https://maven.pkg.github.com/rajivmb/p13i-mvn-repo"
-          #GITHUB_USERNAME: ${{ secrets.WORKFLOW_USERNAME }}
-          WORKFLOW_TOKEN: ${{ secrets.WORKFLOW_TOKEN }}
+          owner: ${{ github.repository_owner }}
+          token: ${{ secrets.WORKFLOW_TOKEN }}
+          internalRepoURL: "https://maven.pkg.github.com/rajivmb/p13i-mvn-repo"
