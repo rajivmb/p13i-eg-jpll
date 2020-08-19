@@ -1,5 +1,5 @@
 name: 'Delete Package Version'
-description: 'Delete a specific package version'
+description: 'Delete aspecific package version'
 inputs:
   name:
     description: 'Name of package to delete'
