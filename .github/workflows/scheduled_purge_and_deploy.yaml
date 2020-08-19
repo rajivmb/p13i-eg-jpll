@@ -12,29 +12,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - name: Fetch package version id
-        run: |
-          curl -X POST \
-            -s \
-            -H "Accept: application/vnd.github.v3+json" \
-            -H "Authorization: bearer ${{ secrets.WORKFLOW_TOKEN }}" \
-            -d '{"query": "query {user(login: \"rajivmb\") { packages(first: 1, names: \"${{ env.PACKAGE_NAME }}\") { nodes { version(version: \"${{ env.PACKAGE_VERSION }}\") { id } } } } }"}' \
-            -o /tmp/query_response.json \
-            --url https://api.github.com/graphql
-      - name: Set version id as output
-        id: version
-        run: printf "::set-output name=id::%s" $(cat /tmp/query_response.json | jq '.data.user.packages.nodes[0].version.id' | sed -e 's/^\"//' -e 's/\"$//')
-      - name: Delete package version by id
-        run: |
-          curl -X POST \
-            -s \
-            -H "Accept: application/vnd.github.package-deletes-preview+json" \
-            -H "Authorization: bearer ${{ secrets.WORKFLOW_TOKEN }}" \
-            -d '{"query": "mutation { deletePackageVersion ( input: { packageVersionId: \"${{ steps.version.outputs.id }}\" } ) { success } }"}' \
-            -o /tmp/mutation_response.json \
-            --url https://api.github.com/graphql
-      - name: Delete package version outcome
-        run: echo $(cat /tmp/mutation_response.json)
+      - name: Delete package version
+        uses: ./.github/actions/delete-package-version
+        with:
+          name: com.p13i.mit.aws.example.p13i-java-parent-example
+          version: 1.0.0-SNAPSHOT
+          owner: ${{ github.repository_owner }}
+          token: ${{ secrets.WORKFLOW_TOKEN }}
       - name: Set up Java
         uses: actions/setup-java@v1
         with:
@@ -51,8 +35,8 @@ jobs:
             ${{ runner.os }}-build-
             ${{ runner.os }}-
       - name: Publish package
-        run: mvn deploy -s settings.xml -Drepo.id=internal.repo -Drepo.username=$GITHUB_USERNAME -Drepo.token=$GITHUB_TOKEN -Dinternal.repo.url=$INTERNAL_REPO_URL -DaltDeploymentRepository=internal.repo::default::$INTERNAL_REPO_URL
+        run: mvn deploy -s settings.xml -Drepo.id=internal.repo -Drepo.username=${{ github.repository_owner }} -Drepo.token=$WORKFLOW_TOKEN -Dinternal.repo.url=$INTERNAL_REPO_URL -DaltDeploymentRepository=internal.repo::default::$INTERNAL_REPO_URL
         env:
           INTERNAL_REPO_URL: "https://maven.pkg.github.com/rajivmb/p13i-mvn-repo"
-          GITHUB_USERNAME: ${{ secrets.WORKFLOW_USERNAME }}
-          GITHUB_TOKEN: ${{ secrets.WORKFLOW_TOKEN }}
+          #GITHUB_USERNAME: ${{ secrets.WORKFLOW_USERNAME }}
+          WORKFLOW_TOKEN: ${{ secrets.WORKFLOW_TOKEN }}

@@ -20,3 +20,5 @@ Resources:
 Outputs:
   P13iMITEgJavaParentLambdaLayerArn:
     Value: !Ref 'P13iMITEgJavaParentLambdaLayer'
+    Export:
+      Name: !Sub "${AWS::StackName}-LambdaLayerArn"

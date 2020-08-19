@@ -1,0 +1,47 @@
+name: 'Delete Package Version'
+description: 'Delete aspecific package version'
+inputs:
+  name:
+    description: 'Name of package to delete'
+    required: true
+  version:
+    description: 'Version of package to delete'
+    required: true
+  owner:
+    description: 'Owner of package to delete'
+    required: false
+    default: ${{ github.repository_owner }}
+  token:
+    description: 'Personal access token to use'
+    required: false
+    default: ${{ github.token }}
+runs:
+  using: "composite"
+  steps:
+  - name: Fetch package version id
+    shell: bash
+    run: |
+      curl -X POST \
+        -s \
+        -H "Accept: application/vnd.github.v3+json" \
+        -H "Authorization: bearer ${{ inputs.token }}" \
+        -d '{"query": "query {user(login: \"${{ inputs.owner }}\") { packages(first: 1, names: \"${{ inputs.name }}\") { nodes { version(version: \"${{ inputs.version }}\") { id } } } } }"}' \
+        -o /tmp/query_response.json \
+        --url https://api.github.com/graphql
+  - name: Set version id as output
+    id: version
+    shell: bash
+    run: printf "::set-output name=id::%s" $(cat /tmp/query_response.json | jq '.data.user.packages.nodes[0].version.id' | sed -e 's/^\"//' -e 's/\"$//')
+  - name: Delete package version by id
+    shell: bash
+    run: |
+      curl -X POST \
+        -s \
+        -H "Accept: application/vnd.github.package-deletes-preview+json" \
+        -H "Authorization: bearer ${{ inputs.token }}" \
+        -d '{"query": "mutation { deletePackageVersion ( input: { packageVersionId: \"${{ steps.version.outputs.id }}\" } ) { success } }"}' \
+        -o /tmp/mutation_response.json \
+        --url https://api.github.com/graphql
+  - name: Delete package version outcome
+    shell: bash
+    run: echo $(cat /tmp/mutation_response.json)
