@@ -10,7 +10,7 @@ echo "Initialising..."
 
 echo -e "Commencing setup...\n"
 
-read -t ${inputTimeout} -p "Enter component name [${projectName}]: " input
+read -t ${inputTimeout} -p "Enter component name [${projectName}], you have ${inputTimeout}s: " input
 
 projectName=${input:-$projectName}
 
