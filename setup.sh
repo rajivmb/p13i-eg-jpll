@@ -25,9 +25,17 @@ printf "DIR is %s\n" ${DIR}
 
 printf "Commencing setup...\n"
 
-read -t ${inputTimeout} -p "Enter component name [${projectName}], you have ${inputTimeout}s or press <Enter> to accept default: " input
+read -t ${inputTimeout} -p "Enter component name [${projectName}] or press <Enter> to accept default, you have ${inputTimeout}s: " inputProjectName
 
-projectName=${input:-$projectName}
+projectName=${inputProjectName:-$projectName}
+
+read -t ${inputTimeout} -p "Enter your Secret name of GitHub token stored in AWS Secrets Manager [${gitHubTokenSecret}], you have ${inputTimeout}s: " inputGitHubTokenSecret
+
+gitHubTokenSecret=${inputGitHubTokenSecret:-$gitHubTokenSecret}
+
+read -t ${inputTimeout} -p "Enter your GitHub Packages (repo) URL to use as private Maven repo [${internalRepoURL}], you have ${inputTimeout}s: " inputGitHubMavenRepoURL
+
+internalRepoURL=${inputGitHubMavenRepoURL:-$internalRepoURL}
 
 printf "\nStarting to setup %s\n" ${projectName}
 
@@ -36,6 +44,7 @@ printf "Deploying stack of %s\n" ${projectName}
 aws cloudformation deploy \
     --template-file ${DIR}/project.yaml \
     --stack-name "${projectName}" \
+    --capabilities CAPABILITY_IAM \
     --parameter-overrides \
         ArtifactName="${projectName}" \
         GitHubOwner="${githubOwner}" \
@@ -45,7 +54,7 @@ aws cloudformation deploy \
         TagRoot="${tagRoot}" \
         TagProject="${tagProject}" \
         TagComponent="JPLL" \
-    --capabilities CAPABILITY_IAM
+        #CreateGitHubWebHook=${createGitHubWebHook}
 
 pipelineName=$(aws cloudformation describe-stacks \
     --stack-name "${projectName}" \
