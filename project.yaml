@@ -188,13 +188,6 @@ Resources:
           RunOrder: 1
       - Name: DEPLOY
         Actions:
-        - Name: DeploymentApproval
-          ActionTypeId:
-            Category: Approval
-            Owner: AWS
-            Provider: Manual
-            Version: "1"
-          RunOrder: 1
         - Name: CreateChangeSet
           ActionTypeId:
             Category: Deploy
@@ -214,7 +207,7 @@ Resources:
                 "ArtifactName": "${ArtifactName}"
               }
             Capabilities: CAPABILITY_IAM
-          RunOrder: 2
+          RunOrder: 1
         - Name: ExecuteChangeSet
           ActionTypeId:
             Category: Deploy
@@ -228,7 +221,7 @@ Resources:
             ChangeSetName: !Sub "${ArtifactName}-DEPLOY-ChangeSet"
           OutputArtifacts:
           - Name: !Sub "${ArtifactName}-DEPLOY-ChangeSet"
-          RunOrder: 3
+          RunOrder: 2
       Tags:
       - Key: "Name"
         Value: "JPLL CodePipeline"
@@ -425,6 +418,9 @@ Resources:
 Outputs:
   P13iMITEgJPLLGroupArn:
     Value: !GetAtt P13iMITEgJPLLGroup.Arn
+
+  BuildArtifactsBucketName:
+    Value: !Ref BuildArtifactsBucket
 
   BuildArtifactsBucketArn:
     Value: !GetAtt BuildArtifactsBucket.Arn
