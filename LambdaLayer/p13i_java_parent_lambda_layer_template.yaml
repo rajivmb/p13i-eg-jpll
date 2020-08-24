@@ -19,6 +19,6 @@ Resources:
 
 Outputs:
   P13iMITEgJavaParentLambdaLayerArn:
-    Value: !Ref 'P13iMITEgJavaParentLambdaLayer'
+    Value: !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:${ArtifactName}-Layer"
     Export:
-      Name: !Sub "${AWS::StackName}-LambdaLayerArn"
+      Name: !Sub "${AWS::StackName}-LambdaLayer"

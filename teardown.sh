@@ -65,7 +65,6 @@ for stack in ${stacks[@]}; do
         --query "Stacks[*].StackId" \
         --output text)
 
-
     delete_stack ${stackId}
 
     stackStatus=$(fetch_stack_status ${stackId})

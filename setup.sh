@@ -29,9 +29,13 @@ read -t ${inputTimeout} -p "Enter component name [${projectName}] or press <Ente
 
 projectName=${inputProjectName:-$projectName}
 
+printf "\n"
+
 read -t ${inputTimeout} -p "Enter your Secret name of GitHub token stored in AWS Secrets Manager [${gitHubTokenSecret}], you have ${inputTimeout}s: " inputGitHubTokenSecret
 
 gitHubTokenSecret=${inputGitHubTokenSecret:-$gitHubTokenSecret}
+
+printf "\n"
 
 read -t ${inputTimeout} -p "Enter your GitHub Packages (repo) URL to use as private Maven repo [${internalRepoURL}], you have ${inputTimeout}s: " inputGitHubMavenRepoURL
 
@@ -61,7 +65,7 @@ pipelineName=$(aws cloudformation describe-stacks \
     --query "Stacks[*].Outputs[?OutputKey=='PipelineName'].OutputValue" \
     --output text)
 
-printf "Pipeline name is: %s\n" ${pipelineName}
+printf "Deploying Lambda Layer via Pipeline: %s\n" ${pipelineName}
 
 pipelineStatus=$(fetch_pipeline_status)
 waitTime=0
