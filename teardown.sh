@@ -69,6 +69,7 @@ for stack in ${stacks[@]}; do
 
     stackStatus=$(fetch_stack_status ${stackId})
     waitTime=0
+    #<Ref/> https://stackoverflow.com/a/15394738
     until [[ " ${END_STATE_CODES[@]} " =~ " ${stackStatus} " ]]; do
         minutes=$((${waitTime}/60))
         seconds=$((${waitTime}%60))
