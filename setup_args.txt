@@ -1,5 +1,5 @@
 inputTimeout=30
-projectName="P13i-MIT-Eg-JPLL"
+projectName="P13i-Eg-JPLL"
 githubOwner="rajivmb"
 gitHubTokenSecret="P13iAWSGitHubTokenSecret"
 createGitHubWebHook="Y"

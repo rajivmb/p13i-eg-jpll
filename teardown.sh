@@ -51,7 +51,7 @@ printf "\nStarting to tear down %s\n" ${projectName}
 
 get_resource s3Bucket ${projectName} "BuildArtifactsBucketName"
 
-get_resource lambdaLayer "${projectName}-DEPLOY" "P13iMITEgJavaParentLambdaLayerArn"
+get_resource lambdaLayer "${projectName}-DEPLOY" "P13iEgJavaParentLambdaLayerArn"
 
 OIFS=$IFS
 IFS=":"

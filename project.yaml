@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: 2010-09-09
-Description: P13i MIT Example Java Parent Lambda Layer stack
+Description: P13i Example Java Parent Lambda Layer stack
 
 Parameters:
   GitHubOwner:
@@ -37,10 +37,10 @@ Conditions:
 
 Resources:
 
-  P13iMITEgJPLLGroup:
+  P13iEgJPLLGroup:
     Type: "AWS::ResourceGroups::Group"
     Properties:
-      Name: "P13i_MIT_Example_JPLL_Group"
+      Name: "P13i_Examples_JPLL_Group"
       Description: "A group of resources associated to JPLL Example under MIT license"
       ResourceQuery:
         Type: "TAG_FILTERS_1_0"
@@ -241,7 +241,7 @@ Resources:
       - Key: "Component"
         Value: !Ref TagComponent
 
-  P13iMITEgJPLLGitHubWebhook:
+  P13iEgJPLLGitHubWebhook:
     Type: 'AWS::CodePipeline::Webhook'
     Condition: GitHubWebHookAction
     Properties:
@@ -253,7 +253,7 @@ Resources:
         MatchEquals: 'refs/heads/{Branch}'
       TargetPipeline: !Ref Pipeline
       TargetAction: SourceAction
-      Name: P13iMITEgJPLLGitHubWebhook
+      Name: P13iEgJPLLGitHubWebhook
       TargetPipelineVersion: !GetAtt Pipeline.Version
       RegisterWithThirdParty: true
 
@@ -424,8 +424,8 @@ Resources:
         Value: !Ref TagComponent
 
 Outputs:
-  P13iMITEgJPLLGroupArn:
-    Value: !GetAtt P13iMITEgJPLLGroup.Arn
+  P13iEgJPLLGroupArn:
+    Value: !GetAtt P13iEgJPLLGroup.Arn
 
   BuildArtifactsBucketName:
     Value: !Ref BuildArtifactsBucket
@@ -439,13 +439,13 @@ Outputs:
   PipelineName:
     Value: !Ref Pipeline
 
-  P13iMITEgJPLLGitHubWebhookName:
+  P13iEgJPLLGitHubWebhookName:
     Condition: GitHubWebHookAction
-    Value: !Ref P13iMITEgJPLLGitHubWebhook
+    Value: !Ref P13iEgJPLLGitHubWebhook
 
-  P13iMITEgJPLLGitHubWebhookUrl:
+  P13iEgJPLLGitHubWebhookUrl:
     Condition: GitHubWebHookAction
-    Value: !GetAtt P13iMITEgJPLLGitHubWebhook.Url
+    Value: !GetAtt P13iEgJPLLGitHubWebhook.Url
 
   CodeBuildServiceRoleArn:
     Value: !GetAtt CodeBuildServiceRole.Arn

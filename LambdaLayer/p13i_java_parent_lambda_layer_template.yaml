@@ -7,7 +7,7 @@ Parameters:
     Type: String
 
 Resources:
-  P13iMITEgJavaParentLambdaLayer:
+  P13iEgJavaParentLambdaLayer:
     Type: 'AWS::Serverless::LayerVersion'
     Properties:
       LayerName: !Sub '${ArtifactName}-Layer'
@@ -18,7 +18,7 @@ Resources:
       RetentionPolicy: 'Retain'
 
 Outputs:
-  P13iMITEgJavaParentLambdaLayerArn:
+  P13iEgJavaParentLambdaLayerArn:
     Value: !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:${ArtifactName}-Layer"
     Export:
       Name: !Sub "${AWS::StackName}-LambdaLayer"
