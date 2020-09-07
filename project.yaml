@@ -188,6 +188,11 @@ Resources:
                   "name":"INTERNAL_REPO_URL",
                   "value":"${InternalRepoURL}",
                   "type":"PLAINTEXT"
+                },
+                {
+                  "name":"INTERNAL_REPO_CREDENTIALS",
+                  "value":"${GitHubTokenSecret}",
+                  "type":"PLAINTEXT"
                 }
               ]
           OutputArtifacts:

@@ -2,8 +2,8 @@ version: 0.2
 
 env:
   secrets-manager:
-    github_username: P13iAWSGitHubTokenSecret:username
-    github_token: P13iAWSGitHubTokenSecret:token
+    github_username: "${INTERNAL_REPO_CREDENTIALS}:username"
+    github_token: "${INTERNAL_REPO_CREDENTIALS}:token"
 
 phases:
   install:
